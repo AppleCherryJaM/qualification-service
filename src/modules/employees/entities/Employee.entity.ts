@@ -1,58 +1,71 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, OneToOne } from 'typeorm';
-import { Department } from './Department';
-import { Position } from './Position';
-import { User } from './User';
-import { CourseAssignment } from './CourseAssignment';
-import { Briefing } from './Briefing';
-import { Internship } from './Internship';
-import { TestResult } from './TestResult';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
+import { Briefing } from '../../briefings/entities/Briefing.entity';
+import { CourseAssignment } from '../../course-assignments/entities/CourseAssignment.entity';
+import { Department } from '../../department/entities/Department.entity';
+import { Internship } from '../../internships/entities/Internship.entity';
+import { TestResult } from '../../test-result/entities/TestResult.entity';
+import { User } from '../../users/entities/User.entity';
+import { Position } from '../../position/entities/Position.entity';
+import { Notification } from '../../notifications/entities/Notification.entity';
 
 @Entity('employees')
 export class Employee {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar' })
-  tabNumber: string;
+  tabNumber!: string;
 
   @Column({ type: 'varchar' })
-  fullName: string;
+  fullName!: string;
 
   @Column({ type: 'date' })
-  hireDate: Date;
+  hireDate!: Date;
 
   @ManyToOne(() => Department, (d) => d.employees, { nullable: true })
   @JoinColumn({ name: 'departmentId' })
-  department: Department;
+  department?: Department;
 
   @Column({ type: 'int', nullable: true })
-  departmentId: number;
+  departmentId?: number;
 
   @ManyToOne(() => Position, (p) => p.employees, { nullable: true })
   @JoinColumn({ name: 'positionId' })
-  position: Position;
+  position?: Position;
 
   @Column({ type: 'int', nullable: true })
-  positionId: number;
+  positionId?: number;
 
   @OneToOne(() => User, (u) => u.employee)
-  user: User;
+  user!: User;
 
   @OneToMany(() => CourseAssignment, (ca) => ca.employee)
-  courseAssignments: CourseAssignment[];
+  courseAssignments?: CourseAssignment[];
 
   @OneToMany(() => Briefing, (b) => b.employee)
-  briefings: Briefing[];
+  briefings?: Briefing[];
 
   @OneToMany(() => Internship, (i) => i.employee)
-  internships: Internship[];
+  internships?: Internship[];
 
   @OneToMany(() => TestResult, (tr) => tr.employee)
-  testResults: TestResult[];
+  testResults?: TestResult[];
 
   @OneToMany(() => Briefing, (b) => b.instructor)
-  conductedBriefings: Briefing[];
+  conductedBriefings?: Briefing[];
 
   @OneToMany(() => Internship, (i) => i.mentor)
-  mentoredInternships: Internship[];
+  mentoredInternships?: Internship[];
+
+  @OneToMany(() => Notification, (n) => n.employee)
+  notifications?: Notification[];
 }

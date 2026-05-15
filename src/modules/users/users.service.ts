@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/User.entity';
-import { Repository } from 'typeorm/browser/repository/Repository.js';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
@@ -14,8 +18,25 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
+  public async findAll() {
+    return this.usersRepository.find();
+  }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { email: email },
+      relations: ['roles', 'roles.role'], // ← загружаем связи
+    });
+  }
+
   public async findOneById(id: number) {
-    return this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user;
   }
 
   public async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -50,15 +71,15 @@ export class UsersService {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, salt);
     }
 
-    if (updateUserDto.email && updateUserDto.email !== user.login) {
+    if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existingUser = await this.findOneByEmail(updateUserDto.email);
 
       if (existingUser)
         throw new ConflictException('User with this email already exists');
     }
 
-    Object.assign(user, updateUserDto);
-    return this.usersRepository.save(user);
+    await this.usersRepository.update(id, updateUserDto);
+    return this.findOneById(id);
   }
 
   public async deleteUser(id: number) {
@@ -67,9 +88,5 @@ export class UsersService {
     if (!user) throw new ConflictException('User not found');
 
     await this.usersRepository.remove(user);
-  }
-
-  private async findOneByEmail(email: string) {
-    return this.usersRepository.findOne({ where: { login: email } });
   }
 }

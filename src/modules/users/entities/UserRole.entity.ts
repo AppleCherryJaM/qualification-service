@@ -1,23 +1,30 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './User';
-import { Role } from './Role';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { User } from './User.entity';
+import { Role } from './Role.entity';
 
 @Entity('user_roles')
 export class UserRole {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @ManyToOne(() => User, (u) => u.userRoles, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (u) => u.roles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user!: User;
 
   @Column({ type: 'int' })
-  userId: number;
+  userId?: number;
 
   @ManyToOne(() => Role, (r) => r.userRoles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'roleId' })
-  role: Role;
+  role!: Role;
 
   @Column({ type: 'int' })
-  roleId: number;
+  roleId?: number;
 }

@@ -1,21 +1,28 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Question } from './Question';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Question } from '../../question/entities/Question.entity';
 
 @Entity('answers')
 export class Answer {
   @PrimaryGeneratedColumn()
-  id: number;
+  i!: number;
 
   @Column({ type: 'text' })
-  text: string;
+  text!: string;
 
   @Column({ type: 'boolean' })
-  isCorrect: boolean;
+  isCorrect!: boolean;
 
   @ManyToOne(() => Question, (q) => q.answers)
   @JoinColumn({ name: 'questionId' })
-  question: Question;
+  question!: Question;
 
   @Column({ type: 'int' })
-  questionId: number;
+  questionId!: number;
 }

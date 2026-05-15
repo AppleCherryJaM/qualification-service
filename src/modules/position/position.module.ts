@@ -1,4 +1,13 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PositionService } from './position.service';
+import { PositionController } from './position.controller';
+import { Position } from './entities/Position.entity';
 
-@Module({})
+@Module({
+  imports: [TypeOrmModule.forFeature([Position])],
+  providers: [PositionService],
+  controllers: [PositionController],
+  exports: [PositionService],
+})
 export class PositionModule {}

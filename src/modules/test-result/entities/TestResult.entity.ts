@@ -1,32 +1,40 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
-import { Employee } from './Employee';
-import { Test } from './Test';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
+import { Employee } from '../../employees/entities/Employee.entity';
+import { Test } from '../../test/entities/Test.entity';
 
 @Entity('test_results')
 export class TestResult {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @CreateDateColumn()
-  takenAt: Date;
+  takenAt!: Date;
 
   @Column({ type: 'int' })
-  score: number;
+  score!: number;
 
   @Column({ type: 'boolean' })
-  passed: boolean;
+  passed!: boolean;
 
   @ManyToOne(() => Employee, (e) => e.testResults)
   @JoinColumn({ name: 'employeeId' })
-  employee: Employee;
+  employee!: Employee;
 
   @Column({ type: 'int' })
-  employeeId: number;
+  employeeId!: number;
 
   @ManyToOne(() => Test, (t) => t.testResults)
   @JoinColumn({ name: 'testId' })
-  test: Test;
+  test!: Test;
 
   @Column({ type: 'int' })
-  testId: number;
+  testId!: number;
 }

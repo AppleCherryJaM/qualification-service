@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Employee } from './Employee';
+import { Employee } from '../../employees/entities/Employee.entity';
 
 export enum PositionCategory {
   WORKER = 'worker',
@@ -10,14 +10,14 @@ export enum PositionCategory {
 @Entity('positions')
 export class Position {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar' })
-  name: string;
+  name?: string;
 
   @Column({ type: 'enum', enum: PositionCategory })
-  category: PositionCategory;
+  category!: PositionCategory;
 
   @OneToMany(() => Employee, (e) => e.position)
-  employees: Employee[];
+  employees!: Employee[];
 }
