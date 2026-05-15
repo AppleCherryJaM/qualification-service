@@ -7,9 +7,9 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { AuditLog } from '../../audit-log/entities/AuditLog.entity';
 import { Employee } from '../../employees/entities/Employee.entity';
 import { UserRole } from './UserRole.entity';
+import { AuditLog } from '../../audit-logs/entities/AuditLog.entity';
 
 @Entity('users')
 export class User {
@@ -17,7 +17,7 @@ export class User {
   id!: number;
 
   @Column({ type: 'varchar', unique: true })
-  login!: string;
+  email!: string;
 
   @Column({ type: 'varchar' })
   password!: string;
@@ -30,7 +30,7 @@ export class User {
   employeeId?: number;
 
   @OneToMany(() => UserRole, (ur) => ur.user, { cascade: true })
-  userRoles?: UserRole[];
+  roles?: UserRole[];
 
   @OneToMany(() => AuditLog, (al) => al.user)
   auditLogs?: AuditLog[];
