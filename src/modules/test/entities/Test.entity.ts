@@ -26,6 +26,9 @@ export class Test {
   @Column({ type: 'int' })
   courseId!: number;
 
+  @Column({ type: 'int', default: 70 })
+  passingScore!: number;
+
   @OneToMany(() => TestResult, (tr) => tr.test)
   testResults!: TestResult[];
 

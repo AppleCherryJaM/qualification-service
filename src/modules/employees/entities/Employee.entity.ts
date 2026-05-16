@@ -45,6 +45,9 @@ export class Employee {
   @Column({ type: 'int', nullable: true })
   positionId?: number;
 
+  @Column({ type: 'boolean', default: false })
+  isBlocked!: boolean;
+
   @OneToOne(() => User, (u) => u.employee)
   user!: User;
 

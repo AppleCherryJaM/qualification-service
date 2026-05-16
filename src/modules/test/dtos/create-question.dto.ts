@@ -1,6 +1,12 @@
-import CreateAnswerDto from './create-answer.dto';
+import { IsString, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateAnswerDto } from './create-answer.dto';
 
-export default interface CreateQuestionDto {
-  text: string;
-  answers: CreateAnswerDto[];
+export class CreateQuestionDto {
+  @IsString()
+  text!: string;
+
+  @ValidateNested({ each: true })
+  @Type(() => CreateAnswerDto)
+  answers!: CreateAnswerDto[];
 }
