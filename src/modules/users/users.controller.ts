@@ -17,6 +17,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { RegisterEmployeeDto } from '../employees/dtos/register-employee.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -51,10 +52,23 @@ export class UsersController {
     return this.usersService.findOneById(id);
   }
 
+  /**
+   * Create standalone user (admin only, for creating admin accounts without employee)
+   */
   @Post()
   @Roles('admin')
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
+  }
+
+  /**
+   * Register new employee with user account (HR/Admin)
+   * Atomic transaction: Employee + User + Role
+   */
+  @Post('register-employee')
+  @Roles('admin', 'hr')
+  async registerEmployee(@Body() dto: RegisterEmployeeDto) {
+    return this.usersService.registerEmployee(dto);
   }
 
   @Patch(':id')

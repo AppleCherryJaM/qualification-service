@@ -1,4 +1,8 @@
-export default interface CreateAnswerDto {
-  text: string;
-  isCorrect: boolean;
+import { IsString } from 'class-validator';
+
+export class CreateAnswerDto {
+  @IsString()
+  text!: string;
+
+  isCorrect!: boolean;
 }

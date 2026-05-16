@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -19,6 +20,9 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { InternshipsModule } from './modules/internships/internship.module';
 import { NotificationsModule } from './modules/notifications/notification.module';
 import { TestsModule } from './modules/test/test.module';
+import { TasksModule } from './modules/tasks/tasks.module';
+import { MailModule } from './modules/mail/mail.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -26,6 +30,8 @@ import { TestsModule } from './modules/test/test.module';
       envFilePath: '.env',
       cache: true,
     }),
+
+    ScheduleModule.forRoot(),
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -61,6 +67,8 @@ import { TestsModule } from './modules/test/test.module';
     AuthModule,
     TrainingTypesModule,
     ReportsModule,
+    TasksModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

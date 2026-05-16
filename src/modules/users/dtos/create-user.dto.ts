@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import { IsEmail, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, MinLength, IsOptional, IsInt } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -12,14 +11,6 @@ export class CreateUserDto {
   email!: string;
 
   @ApiProperty({
-    example: 'John Doe',
-    description: 'User full name',
-    required: true,
-  })
-  @IsNotEmpty()
-  name!: string;
-
-  @ApiProperty({
     example: 'password123',
     minLength: 6,
     description: 'User password',
@@ -29,20 +20,11 @@ export class CreateUserDto {
   password!: string;
 
   @ApiProperty({
-    example: '+1234567890',
+    example: 1,
     required: false,
-    description: 'User phone number',
+    description: 'Employee ID (required for non-admin users)',
   })
   @IsOptional()
-  phone?: string;
-
-  @ApiProperty({
-    example: 'https://example.com/avatar.jpg',
-    required: false,
-    description: 'User avatar URL',
-  })
-  @IsOptional()
-  avatarUrl?: string;
-
-  isVerified!: boolean;
+  @IsInt()
+  employeeId?: number;
 }

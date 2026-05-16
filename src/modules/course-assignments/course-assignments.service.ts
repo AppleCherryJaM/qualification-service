@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
@@ -9,6 +7,7 @@ import {
 } from './entities/CourseAssignment.entity';
 import { Course } from '../course/entities/Course.entity';
 import { Employee } from '../employees/entities/Employee.entity';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class CourseAssignmentsService {
@@ -19,6 +18,7 @@ export class CourseAssignmentsService {
     private readonly empRepo: Repository<Employee>,
     @InjectRepository(Course)
     private readonly courseRepo: Repository<Course>,
+    private readonly mailService: MailService,
   ) {}
 
   async findAll(filters?: {
@@ -62,7 +62,10 @@ export class CourseAssignmentsService {
     courseId: number,
     plannedDate: Date,
   ): Promise<CourseAssignment> {
-    const employee = await this.empRepo.findOne({ where: { id: employeeId } });
+    const employee = await this.empRepo.findOne({
+      where: { id: employeeId },
+      relations: ['user'],
+    });
     const course = await this.courseRepo.findOne({ where: { id: courseId } });
     if (!employee || !course)
       throw new NotFoundException('Employee or course not found');
@@ -73,7 +76,19 @@ export class CourseAssignmentsService {
       plannedDate,
       status: AssignmentStatus.PLANNED,
     });
-    return this.repo.save(ca);
+    const saved = await this.repo.save(ca);
+
+    // Отправляем email-уведомление при назначении
+    if (employee?.user?.email) {
+      await this.mailService.sendCourseAssignedNotification(
+        employee.user.email,
+        employee.fullName,
+        course.name,
+        plannedDate,
+      );
+    }
+
+    return saved;
   }
 
   async complete(

@@ -1,5 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Answer } from '../answer/entities/Answer.entity';
@@ -7,9 +10,8 @@ import { Employee } from '../employees/entities/Employee.entity';
 import { Question } from '../question/entities/Question.entity';
 import { TestResult } from '../test-result/entities/TestResult.entity';
 import { Test } from './entities/Test.entity';
-import CreateTestDto from './dtos/create-test.dto';
-import SubmitAnswerDto from './dtos/submit-answer.dto';
-import { FindAnswerDto } from './dtos/find-answer.dto';
+import { CreateTestDto } from './dtos/create-test.dto';
+import { SubmitAnswerDto } from './dtos/submit-answer.dto';
 
 @Injectable()
 export class TestsService {
@@ -40,6 +42,7 @@ export class TestsService {
     const test = new Test();
     test.title = data.title;
     test.courseId = data.courseId;
+    test.passingScore = data.passingScore ?? 70;
 
     const savedTest = await this.testRepo.save(test);
 
@@ -76,20 +79,29 @@ export class TestsService {
     const employee = await this.empRepo.findOne({ where: { id: employeeId } });
     if (!employee) throw new NotFoundException('Employee not found');
 
-    let correct = 0;
-    for (const ans of answers) {
-      const whereCondition: FindAnswerDto = {
-        id: ans.answerId,
-        questionId: ans.questionId,
-      };
+    if (employee.isBlocked) {
+      throw new BadRequestException('Employee is blocked from taking tests');
+    }
 
-      const answer = await this.aRepo.findOne({ where: whereCondition });
-      if (answer?.isCorrect) correct++;
+    let correct = 0;
+
+    for (const ans of answers) {
+      const answer = await this.aRepo.findOne({
+        where: {
+          id: ans.answerId,
+          questionId: ans.questionId,
+        },
+      });
+
+      if (answer?.isCorrect) {
+        correct++;
+      }
     }
 
     const total = test.questions?.length || 1;
     const score = Math.round((correct / total) * 100);
-    const passed = score >= 70;
+    const passingScore = test.passingScore ?? 70;
+    const passed = score >= passingScore;
 
     const result = new TestResult();
     result.employeeId = employeeId;
