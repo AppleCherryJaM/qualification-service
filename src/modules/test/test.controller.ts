@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Get,
@@ -90,5 +93,11 @@ export class TestsController {
       employeeId: empId ? parseInt(empId) : undefined,
       testId: testId ? parseInt(testId) : undefined,
     });
+  }
+
+  @Get('results/all')
+  @ApiOperation({ summary: 'Все результаты тестов' })
+  findAllResults() {
+    return this.service.findResults({});
   }
 }

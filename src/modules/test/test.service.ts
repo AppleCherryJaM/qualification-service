@@ -116,14 +116,23 @@ export class TestsService {
     employeeId?: number;
     testId?: number;
   }): Promise<TestResult[]> {
+    // Если нет фильтров — возвращаем ВСЕ результаты
+    if (!filters || (!filters.employeeId && !filters.testId)) {
+      return this.resultRepo.find({
+        relations: ['employee', 'test'],
+        order: { takenAt: 'DESC' },
+      });
+    }
+
+    // Если есть фильтры — используем QueryBuilder
     const qb = this.resultRepo
       .createQueryBuilder('r')
       .leftJoinAndSelect('r.employee', 'e')
       .leftJoinAndSelect('r.test', 't');
 
-    if (filters?.employeeId)
+    if (filters.employeeId)
       qb.andWhere('r.employeeId = :emp', { emp: filters.employeeId });
-    if (filters?.testId)
+    if (filters.testId)
       qb.andWhere('r.testId = :test', { test: filters.testId });
 
     return qb.orderBy('r.takenAt', 'DESC').getMany();

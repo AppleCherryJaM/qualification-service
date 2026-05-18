@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,6 +9,7 @@ import {
 import { Employee } from '../../employees/entities/Employee.entity';
 import { UserRole } from './UserRole.entity';
 import { AuditLog } from '../../audit-logs/entities/AuditLog.entity';
+import { RefreshToken } from './RefreshToken.entity';
 
 @Entity('users')
 export class User {
@@ -31,6 +31,9 @@ export class User {
 
   @OneToMany(() => UserRole, (ur) => ur.user, { cascade: true })
   roles?: UserRole[];
+
+  @OneToMany(() => RefreshToken, (rt) => rt.user)
+  refreshTokens?: RefreshToken[];
 
   @OneToMany(() => AuditLog, (al) => al.user)
   auditLogs?: AuditLog[];

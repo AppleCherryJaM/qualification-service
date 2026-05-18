@@ -22,6 +22,7 @@ import { NotificationsModule } from './modules/notifications/notification.module
 import { TestsModule } from './modules/test/test.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { MailModule } from './modules/mail/mail.module';
+import { RefreshTokensModule } from './modules/refresh-tokens/refresh-tokens.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { MailModule } from './modules/mail/mail.module';
     ReportsModule,
     TasksModule,
     MailModule,
+    RefreshTokensModule,
   ],
   controllers: [AppController],
   providers: [AppService],
