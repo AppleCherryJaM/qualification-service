@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -12,6 +13,9 @@ async function bootstrap() {
     credentials: true,
     allowedHeaders: 'Content-Type, Authorization',
   });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  app.use(cookieParser());
 
   // === SWAGGER ===
   const config = new DocumentBuilder()

@@ -1,9 +1,8 @@
-// src/modules/auth/auth.service.ts
-
 import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -13,6 +12,8 @@ import { LoginDto } from './dtos/login.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -32,7 +33,6 @@ export class AuthService {
     }
 
     const roles = user.roles?.map((ur) => ur.role?.name).filter(Boolean) || [];
-
     const payload = {
       sub: user.id,
       login: user.email,
@@ -45,7 +45,8 @@ export class AuthService {
       expiresIn: (process.env.JWT_ACCESS_EXPIRES || '15m') as
         | `${number}m`
         | `${number}h`
-        | `${number}d`,
+        | `${number}d`
+        | `${number}s`,
     });
 
     const refreshTokenEntity = await this.refreshTokensService.create(user.id);
@@ -64,17 +65,25 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
+    this.logger.log(
+      `Refreshing with token: ${refreshToken.substring(0, 20)}...`,
+    );
+
     const tokenEntity =
       await this.refreshTokensService.findByToken(refreshToken);
+    this.logger.log(`Found: ${!!tokenEntity}`);
 
     if (!tokenEntity) {
       throw new ForbiddenException('Refresh token not found');
     }
 
     if (tokenEntity.revoked) {
-      await this.refreshTokensService.revokeAllForUser(tokenEntity.userId);
+      // Токен уже использован — возможна атака повторного воспроизведения.
+      // НО: при параллельных запросах с фронта это ложное срабатывание.
+      // Поэтому НЕ отзываем все сессии сразу — просто отказываем.
+      this.logger.warn(`Revoked token used: ${refreshToken.substring(0, 20)}`);
       throw new ForbiddenException(
-        'Refresh token revoked. Please login again.',
+        'Refresh token already used. Please login again.',
       );
     }
 
@@ -82,6 +91,11 @@ export class AuthService {
       throw new ForbiddenException('Refresh token expired');
     }
 
+    this.logger.log('Token valid, generating new tokens');
+
+    // Сначала rotate (отзываем старый), потом генерируем новый access token.
+    // Порядок важен: если что-то упадёт после rotate — клиент получит 403
+    // и будет вынужден залогиниться заново (это корректное поведение).
     const newRefreshToken = await this.refreshTokensService.create(
       tokenEntity.userId,
     );
@@ -102,13 +116,21 @@ export class AuthService {
       expiresIn: (process.env.JWT_ACCESS_EXPIRES || '15m') as
         | `${number}m`
         | `${number}h`
-        | `${number}d`,
+        | `${number}d`
+        | `${number}s`,
     });
 
     return {
       access_token: accessToken,
       refresh_token: newRefreshToken.token,
       expires_in: 900,
+      // ВАЖНО: возвращаем user — фронт обновляет zustand store через setAuth(data)
+      user: {
+        id: user.id,
+        email: user.email,
+        roles,
+        employeeId: user.employeeId,
+      },
     };
   }
 

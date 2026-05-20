@@ -17,6 +17,17 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../../common/guards/jwt-refresh.guard';
 import { GetUser } from '../../common/decorators/get-user.decorator';
 
+function getRefreshCookieOptions() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax' as const,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+  };
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -29,15 +40,13 @@ export class AuthController {
   ) {
     const result = await this.authService.login(loginDto);
 
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('refresh_token', result.refresh_token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/auth/refresh',
-    });
+    res.clearCookie('refresh_token', { path: '/auth/refresh' });
 
+    res.cookie(
+      'refresh_token',
+      result.refresh_token,
+      getRefreshCookieOptions(),
+    );
     return {
       access_token: result.access_token,
       expires_in: result.expires_in,
@@ -53,19 +62,15 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.refresh(refreshToken);
-
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.cookie('refresh_token', result.refresh_token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/auth/refresh',
-    });
-
+    res.cookie(
+      'refresh_token',
+      result.refresh_token,
+      getRefreshCookieOptions(),
+    );
     return {
       access_token: result.access_token,
       expires_in: result.expires_in,
+      user: result.user,
     };
   }
 
@@ -77,9 +82,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logout(refreshToken);
-
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
-
+    res.clearCookie('refresh_token', { path: '/auth/refresh' }); // старый path
+    res.clearCookie('refresh_token', { path: '/' }); // новый path
     return { message: 'Logged out successfully' };
   }
 
@@ -91,9 +95,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logoutAll(userId);
-
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
-
+    res.clearCookie('refresh_token', { path: '/' });
     return { message: 'All sessions terminated' };
   }
 
