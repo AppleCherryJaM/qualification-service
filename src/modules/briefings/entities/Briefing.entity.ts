@@ -11,6 +11,7 @@ import {
 import { Employee } from '../../employees/entities/Employee.entity';
 
 export enum BriefingType {
+  INTRODUCTORY = 'introductory',
   INITIAL = 'initial',
   REPEATED = 'repeated',
   UNPLANNED = 'unplanned',

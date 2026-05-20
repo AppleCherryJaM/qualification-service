@@ -129,4 +129,52 @@ export class MailService {
 
     await this.sendMail(email, subject, html);
   }
+
+  async sendReminderNotification(
+    email: string,
+    employeeName: string,
+    courseName: string,
+    plannedDate: Date,
+    daysBefore: number,
+  ): Promise<void> {
+    const dayWord = this.declineDays(daysBefore);
+    const subject = `⏰ Напоминание: курс через ${daysBefore} ${dayWord}`;
+    const urgencyColor =
+      daysBefore <= 1 ? '#d32f2f' : daysBefore <= 7 ? '#f57c00' : '#1976d2';
+    const urgencyBg =
+      daysBefore <= 1 ? '#ffebee' : daysBefore <= 7 ? '#fff3e0' : '#e3f2fd';
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: ${urgencyColor};">Напоминание о предстоящем курсе</h2>
+        <p>Уважаемый(ая) <strong>${employeeName}</strong>,</p>
+        <p>Через <strong>${daysBefore} ${dayWord}</strong> необходимо пройти курс <strong>"${courseName}"</strong>.</p>
+        <p>Плановая дата прохождения: <strong>${plannedDate.toLocaleDateString('ru-RU')}</strong></p>
+        <div style="background: ${urgencyBg}; padding: 12px; border-radius: 4px; margin: 16px 0;">
+          <p style="margin: 0; color: ${urgencyColor}; font-weight: bold;">
+            ${
+              daysBefore <= 1
+                ? '⚠️ Срочно! Курс нужно пройти завтра!'
+                : daysBefore <= 7
+                  ? 'Внимание! Осталась неделя.'
+                  : 'Пожалуйста, запланируйте время для прохождения курса.'
+            }
+          </p>
+        </div>
+        <hr style="border: none; border-top: 1px solid #eee;">
+        <p style="font-size: 12px; color: #999;"><em>Автоматическое уведомление из ИС "Учёт повышения квалификации"</em></p>
+      </div>
+    `;
+
+    await this.sendMail(email, subject, html);
+  }
+
+  private declineDays(n: number): string {
+    const lastTwo = n % 100;
+    const lastOne = n % 10;
+    if (lastTwo >= 11 && lastTwo <= 14) return 'дней';
+    if (lastOne === 1) return 'день';
+    if (lastOne >= 2 && lastOne <= 4) return 'дня';
+    return 'дней';
+  }
 }
